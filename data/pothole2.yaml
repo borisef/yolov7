@@ -1,0 +1,8 @@
+# train and val data as 1) directory: path/images/, 2) file: path/images.txt, or 3) list: [path1/images/, path2/images/]
+train: /home/borisef/datasets/pothole_dataset/images/train
+val: /home/borisef/datasets/pothole_dataset/images/valid
+test: /home/borisef/datasets/pothole_dataset/images/test
+
+# Classes
+nc: 1  # number of classes
+names: ['pothole']  # class names

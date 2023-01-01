@@ -1,4 +1,4 @@
-import cv2, json
+import cv2, json, os
 
 def get_img_shape(path):
     img = cv2.imread(path)
@@ -38,7 +38,7 @@ def convert_labels(path, x1, y1, x2, y2):
     return (x,y,w,h)
 
 
-def c2y(data_json, outpath):
+def c2y(data_json, img_path,  outpath):
 
     f=open(data_json)
     training_data = json.load(f)
@@ -47,13 +47,14 @@ def c2y(data_json, outpath):
         image_id = str(training_data['annotations'][i]['image_id'])
         category_id = str(training_data['annotations'][i]['category_id'])
         bbox = training_data['annotations'][i]['bbox']
-        image_path = image_id + ".jpg"
+        image_path = image_id + ".jpg" #TODO
+        image_path = os.path.join(img_path, image_path)
         kitti_bbox = [bbox[0], bbox[1], bbox[2] + bbox[0], bbox[3] + bbox[1]]
         yolo_bbox = convert_labels(image_path, kitti_bbox[0], kitti_bbox[1], kitti_bbox[2], kitti_bbox[3])
-        filename = image_id + ".txt"
+        filename = image_id + ".txt" #TODO
         content = category_id + " " + str(yolo_bbox[0]) + " " + str(yolo_bbox[1]) + " " + str(yolo_bbox[2]) + " " + str(yolo_bbox[3])
         if image_id in check_set:
-            # Append to file files
+            # Append to file
             file = open(filename, "a")
             file.write("\n")
             file.write(content)
@@ -64,3 +65,39 @@ def c2y(data_json, outpath):
             file = open(filename, "w")
             file.write(content)
             file.close()
+
+def coco2yolo_many_folders(train_inputs,test_inputs, val_inputs, yaml_output):
+    pass
+
+
+if __name__ == "__main__":
+    data_json = "/home/borisef/datasets/racoon/train/_annotations.coco.json"
+    img_path = "/home/borisef/datasets/racoon/train"
+    outpath = "/home/borisef/datasets/outpath/" # will create
+    ann_out_dir = 'ann'
+    #c2y(data_json=data_json, img_path = img_path, outpath=outpath)
+
+    from pylabel import importer
+
+    dataset = importer.ImportCoco(path=data_json, path_to_images=img_path)
+
+    if(not os.path.exists(outpath)):
+        os.mkdir(outpath)
+    dataset.export.ExportToYoloV5(output_path=os.path.join(outpath,ann_out_dir),
+                                  yaml_file="dataset.yaml",
+                                  copy_images=True,
+                                  use_splits=False,
+                                  cat_id_index=None)
+
+    # need to create folders:
+    #outpath/images/train
+    #outpath/images/test
+    #outpath/images/val
+
+    #outpath/labels/train
+    #outpath/labels/test
+    #outpath/labels/val
+
+    #yaml
+    # train and val data as 1) directory: path/images/, 2) file: path/images.txt, or 3) list: [path1/images/, path2/images/]
+
